@@ -3,8 +3,6 @@ package com.aluracursos.adopet.api.model;
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -21,19 +19,16 @@ public class Adopcion {
     @Column(name = "fecha")
     private LocalDateTime fecha;
 
-    @NotNull
     @ManyToOne
     @JsonBackReference("tutor_adopciones")
     @JoinColumn(name = "tutor_id")
     private Tutor tutor;
 
-    @NotNull
     @OneToOne
     @JoinColumn(name = "mascota_id")
     @JsonManagedReference("adopcion_mascotas")
     private Mascota mascota;
 
-    @NotBlank
     @Column(name = "motivo")
     private String motivo;
 
@@ -109,7 +104,7 @@ public class Adopcion {
         return justificativaStatus;
     }
 
-    public void setJustificativaStatus(String justificativaStatus) {
+    public void setJustificacionStatus(String justificativaStatus) {
         this.justificativaStatus = justificativaStatus;
     }
 }
