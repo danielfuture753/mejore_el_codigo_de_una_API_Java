@@ -1,8 +1,7 @@
 package com.aluracursos.adopet.api.model;
 
-import com.fasterxml.jackson.annotation.JsonBackReference;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
 
 import java.time.LocalDateTime;
 import java.util.Objects;
@@ -13,31 +12,32 @@ public class Adopcion {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    @Column(name = "id")
     private Long id;
 
-    @Column(name = "fecha")
     private LocalDateTime fecha;
 
-    @ManyToOne
-    @JsonBackReference("tutor_adopciones")
-    @JoinColumn(name = "tutor_id")
+    @ManyToOne(fetch = FetchType.LAZY)
     private Tutor tutor;
 
-    @OneToOne
-    @JoinColumn(name = "mascota_id")
-    @JsonManagedReference("adopcion_mascotas")
+    @OneToOne(fetch = FetchType.LAZY)
     private Mascota mascota;
 
-    @Column(name = "motivo")
     private String motivo;
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "status")
     private StatusAdopcion status;
 
-    @Column(name = "justificativa_status")
-    private String justificativaStatus;
+    private String justificacionStatus;
+
+    public Adopcion(Tutor tutor, Mascota mascota, String motivo) {
+        this.tutor = tutor;
+        this.mascota = mascota;
+        this.motivo = motivo;
+        this.fecha = LocalDateTime.now();
+        this.status = StatusAdopcion.ESPERANDO_EVALUACION;
+    }
+
+    public Adopcion() {}
 
     @Override
     public boolean equals(Object o) {
@@ -56,55 +56,35 @@ public class Adopcion {
         return id;
     }
 
-    public void setId(Long id) {
-        this.id = id;
-    }
-
     public LocalDateTime getFecha() {
         return fecha;
-    }
-
-    public void setFecha(LocalDateTime fecha) {
-        this.fecha = fecha;
     }
 
     public Tutor getTutor() {
         return tutor;
     }
 
-    public void setTutor(Tutor tutor) {
-        this.tutor = tutor;
-    }
-
     public Mascota getMascota() {
         return mascota;
-    }
-
-    public void setMascota(Mascota mascota) {
-        this.mascota = mascota;
     }
 
     public String getMotivo() {
         return motivo;
     }
 
-    public void setMotivo(String motivo) {
-        this.motivo = motivo;
-    }
-
     public StatusAdopcion getStatus() {
         return status;
     }
-
-    public void setStatus(StatusAdopcion status) {
-        this.status = status;
+    public String getJustificacionStatus() {
+        return justificacionStatus;
     }
 
-    public String getJustificativaStatus() {
-        return justificativaStatus;
+    public void marcarComoAprobada() {
+        this.status = StatusAdopcion.APROBADO;
     }
 
-    public void setJustificacionStatus(String justificativaStatus) {
-        this.justificativaStatus = justificativaStatus;
+    public void marcarComoReprobada(@NotBlank String justificacion) {
+        this.status = StatusAdopcion.REPROBADO;
+        this.justificacionStatus = justificacion;
     }
 }

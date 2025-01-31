@@ -5,7 +5,6 @@ import com.aluracursos.adopet.api.dto.ReprobacionAdopcionDTO;
 import com.aluracursos.adopet.api.dto.SolicitudAdopcionDTO;
 import com.aluracursos.adopet.api.model.Adopcion;
 import com.aluracursos.adopet.api.model.Mascota;
-import com.aluracursos.adopet.api.model.StatusAdopcion;
 import com.aluracursos.adopet.api.model.Tutor;
 import com.aluracursos.adopet.api.repository.AdopcionRepository;
 import com.aluracursos.adopet.api.repository.MascotaRepository;
@@ -14,7 +13,6 @@ import com.aluracursos.adopet.api.validations.ValidacionesSolicitudAdopcion;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
 
@@ -42,12 +40,8 @@ public class AdopcionService {
 
         validaciones.forEach(v -> v.validar(dto));
 
-        Adopcion adopcion = new Adopcion();
-        adopcion.setFecha(LocalDateTime.now());
-        adopcion.setStatus(StatusAdopcion.ESPERANDO_EVALUACION);
-        adopcion.setTutor(tutor);
-        adopcion.setMascota(mascota);
-        adopcion.setMotivo(dto.motivo());
+        Adopcion adopcion = new Adopcion(tutor, mascota, dto.motivo());
+
         adopcionRepository.save(adopcion);
 
         emailService.enviarEmail(
@@ -59,7 +53,7 @@ public class AdopcionService {
 
     public void aprobar(AprobacionAdopcionDTO dto) {
         Adopcion adopcion = adopcionRepository.getReferenceById(dto.idAdopcion());
-        adopcion.setStatus(StatusAdopcion.APROBADO);
+        adopcion.marcarComoAprobada();
 
         emailService.enviarEmail(
                 adopcion.getTutor().getEmail(),
@@ -70,13 +64,12 @@ public class AdopcionService {
 
     public void reprobar(ReprobacionAdopcionDTO dto) {
         Adopcion adopcion = adopcionRepository.getReferenceById(dto.idAdopcion());
-        adopcion.setStatus(StatusAdopcion.REPROBADO);
-        adopcion.setJustificacionStatus(dto.justificacion());
+        adopcion.marcarComoReprobada(dto.justificacion());
 
         emailService.enviarEmail(
                 adopcion.getTutor().getEmail(),
                 "Adopción reprobada",
-                "Hola " + adopcion.getTutor().getNombre() +"!\n\nInfelizmente su adopción de la mascota " + adopcion.getMascota().getNombre() +", solicitada el dia " + adopcion.getFecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +", fue reprobada por el refugio " + adopcion.getMascota().getRefugio().getNombre() +" con la seguiente justificativa: " + adopcion.getJustificativaStatus()
+                "Hola " + adopcion.getTutor().getNombre() +"!\n\nInfelizmente su adopción de la mascota " + adopcion.getMascota().getNombre() +", solicitada el dia " + adopcion.getFecha().format(DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss")) +", fue reprobada por el refugio " + adopcion.getMascota().getRefugio().getNombre() +" con la seguiente justificativa: " + adopcion.getJustificacionStatus()
         );
     }
 }
